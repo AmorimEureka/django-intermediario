@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.contrib import messages
+from django.shortcuts import redirect
 
 from .forms import ContatoForm, ProdutoModelForm
 from .models import Produto
@@ -42,25 +43,27 @@ def contato(request):
     return render(request,'contato.html', context)
 
 def produto(request):
+    if str(request.user) != 'AnonymousUser':
+        if str(request.method) == 'POST':
+            form = ProdutoModelForm(request.POST, request.FILES)
+            if form.is_valid():
+                # prod = form.save(commit=False) # Não Consiste no db
 
-    if str(request.method) == 'POST':
-        form = ProdutoModelForm(request.POST, request.FILES)
-        if form.is_valid():
-            # prod = form.save(commit=False) # Não Consiste no db
+                # print(f'Nome: {prod.nome}')
+                # print(f'preco: {prod.preco}')
+                # print(f'estoque: {prod.estoque}')
+                # print(f'Imagem: {prod.imagem}')
 
-            # print(f'Nome: {prod.nome}')
-            # print(f'preco: {prod.preco}')
-            # print(f'estoque: {prod.estoque}')
-            # print(f'Imagem: {prod.imagem}')
+                form.save()
 
-            form.save()
-
-            messages.success(request, 'Produto Salvo com Sucesso')
-            form = ProdutoModelForm()
+                messages.success(request, 'Produto Salvo com Sucesso')
+                form = ProdutoModelForm()
+            else:
+                messages.error(request, 'Error ao Salvar o Produto')
         else:
-            messages.error(request, 'Error ao Salvar o Produto')
-    else:
-        form = ProdutoModelForm() 
-    context = {'form': form}
+            form = ProdutoModelForm() 
+        context = {'form': form}
 
-    return render(request, 'produto.html', context)
+        return render(request, 'produto.html', context)
+    else:
+        return redirect('index')
